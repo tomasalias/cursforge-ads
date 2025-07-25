@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CurseForge</title>
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://widget.freshworks.com">
+  <script src="../desktop/desktop.js" type="module"></script>
+  <link href="../desktop/desktop.css" rel="stylesheet">
+  <style>
+    aside.curseforge-ad { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.fwSettings = { widget_id: 0x218711bb1 };
+    (function () {
+      if (typeof window.FreshworksWidget !== "function") {
+        const e = function () { e.q.push(arguments); };
+        e.q = [], window.FreshworksWidget = e;
+      }
+    })();
+
+    document.querySelector("body").addEventListener("load", FreshworksWidget("hide","launcher"));
+    FreshworksWidget("prefill","ticketForm",{ custom_fields:{ app_issues:"CurseForge" } });
+    FreshworksWidget("hide","ticketForm",["custom_fields.os","custom_fields.cf_recorded_video_url"]);
+    FreshworksWidget("hideChoices","ticketForm",{ custom_fields:{ game:[
+      "American Truck Simulator","League of Legends","Legends of Runeterra","PlanetSide2",
+      "Guild Wars 2","Skyrim","Grand Theft Auto: San Andreas","Grand Theft Auto V",
+      "World of Tanks","SWTOR","Robocraft","Battlefield 4","Hearthstone: Heroes of Warcraft",
+      "Warframe","Smite","Dota 2","Diablo III","RuneScape","Unturned","ARMA 3",
+      "Heroes of the Storm","Team Fortress 2","ArcheAge","Trove","Rocket League",
+      "ARK: Survival Evolved","Euro Truck Simulator 2","Rust","Eve Online","Warface",
+      "H1Z1","Overwatch","Doom","Tom Clancys Rainbow Six: Siege","VALORANT",
+      "Magic the Gathering: Arena","Point Blank","Farming Simulator 2015","DayZ",
+      "Dead By Daylight","PLAYERUNKNOWNS BATTLEGROUNDS","Path of Exile","Apex Legends",
+      "Call of Duty: Modern Warfare","Counter-Strike: Global Offensive","Escape From Tarkov",
+      "Fortnite Battle Royale","Garrys Mod","Genshin Impact","Gods Unchained","Lost Ark",
+      "New World","RIFT","Sea of Thieves","Splitgate: Arena Warfare"
+    ]}});
+    FreshworksWidget("disable","ticketForm",["custom_fields.app_issues"]);
+    FreshworksWidget("hideChoices","ticketForm",{ custom_fields:{ os:["Android","IOS","None"] }});
+  </script>
+
+  <script src="https://widget.freshworks.com/widgets/9000000433.js" async defer></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const ad = document.querySelector("aside.curseforge-ad");
+      if (ad) ad.remove();
+    });
+  </script>
+</body>
+</html>
