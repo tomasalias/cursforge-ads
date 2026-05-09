@@ -4,15 +4,12 @@ setlocal
 rem —————————————————————————————
 rem CONFIGURATION
 set "DESKTOP_HTML=%~dp0desktop.html"
-set "SCOOP_7ZIP=%USERPROFILE%\scoop\apps\7zip\current"
-set "FORMATS_DIR=%SCOOP_7ZIP%\Formats"
 set "CURSEFORGE_RES=%LOCALAPPDATA%\Programs\CurseForge Windows\resources"
 set "ASAR=%CURSEFORGE_RES%\app.asar"
 set "BACKUP=%ASAR%.bak"
 set "WORK=%TEMP%\cf_extract"
 set "NEW_ASAR=%TEMP%\new.asar"
-set "ASAR_ZIP=%TEMP%\Asar.zip"
-set "ZIP=7z.exe"
+set "PYTHON=python"
 
 rem —————————————————————————————
 rem 0) Sanity
@@ -26,23 +23,32 @@ if not exist "%ASAR%" (
 )
 
 rem —————————————————————————————
-rem 1) Ensure 7‑Zip
-where /q "%ZIP%">nul
+rem 1) Ensure Python
+where /q "%PYTHON%">nul
 if errorlevel 1 (
-  echo Installing 7‑Zip…
-  winget install --silent --accept-package-agreements --accept-source-agreements 7zip.7zip
-) else (
-  echo 7‑Zip present.
+  echo Installing Python...
+  winget install --silent --accept-package-agreements --accept-source-agreements Python.Python.3.12
+)
+
+where /q "%PYTHON%">nul
+if errorlevel 1 (
+  echo ERROR: Python not found after install.
+  pause & exit /b 1
+)
+
+"%PYTHON%" -m pip --version >nul 2>nul
+if errorlevel 1 (
+  "%PYTHON%" -m ensurepip --upgrade >nul 2>nul
 )
 
 rem —————————————————————————————
-rem 2) Download & install Asar plugin
-echo Downloading Asar plugin…
-powershell -Command "Invoke-WebRequest 'https://www.tc4shell.com/binary/Asar.zip' -OutFile '%ASAR_ZIP%'" 2>nul
-
-if not exist "%FORMATS_DIR%" mkdir "%FORMATS_DIR%"
-echo Installing plugin into %FORMATS_DIR%…
-powershell -Command "Expand-Archive -LiteralPath '%ASAR_ZIP%' -DestinationPath '%FORMATS_DIR%' -Force" 2>nul
+rem 2) Install asar
+echo Installing asar...
+"%PYTHON%" -m pip install --upgrade asar >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Failed to install asar.
+  pause & exit /b 1
+)
 
 rem —————————————————————————————
 rem 3) Prepare work dir
@@ -58,8 +64,14 @@ if not exist "%BACKUP%" (
 
 rem —————————————————————————————
 rem 5) Extract entire ASAR
-echo Extracting app.asar…
-"%ZIP%" x "%ASAR%" -o"%WORK%" >nul 2>nul
+echo Extracting app.asar...
+set "ASAR_SRC=%ASAR%"
+set "ASAR_DST=%WORK%"
+"%PYTHON%" -c "from pathlib import Path; import os; from asar import extract_archive; extract_archive(Path(os.environ['ASAR_SRC']), Path(os.environ['ASAR_DST']))" >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Failed to extract app.asar.
+  pause & exit /b 1
+)
 
 if not exist "%WORK%\dist\desktop\" (
   echo ERROR: dist\desktop not found
@@ -68,16 +80,20 @@ if not exist "%WORK%\dist\desktop\" (
 
 rem —————————————————————————————
 rem 6) Replace desktop.html
-echo Overwriting desktop.html…
+echo Overwriting desktop.html...
 copy /Y "%DESKTOP_HTML%" "%WORK%\dist\desktop\desktop.html" >nul
 
 rem —————————————————————————————
 rem 7) Pack new archive into temporary file
 if exist "%NEW_ASAR%" del "%NEW_ASAR%"
-echo Packing new ASAR…
-pushd "%WORK%"
-"%ZIP%" a "%NEW_ASAR%" * >nul
-popd
+echo Packing new ASAR...
+set "ASAR_PACK_SRC=%WORK%"
+set "ASAR_PACK_DST=%NEW_ASAR%"
+"%PYTHON%" -c "from pathlib import Path; import os; from asar import create_archive; create_archive(Path(os.environ['ASAR_PACK_SRC']), Path(os.environ['ASAR_PACK_DST']))" >nul 2>nul
+if errorlevel 1 (
+  echo ERROR: Failed to create new ASAR.
+  pause & exit /b 1
+)
 
 if not exist "%NEW_ASAR%" (
   echo ERROR: Failed to create new ASAR
